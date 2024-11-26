@@ -65,7 +65,7 @@ Set Width 1280
 Set Height 720
 
 Hide
-Type "slides S\&P500.md" Sleep 500ms  
+Type "slides Part2.md" Sleep 500ms
 Show
 Enter
 
