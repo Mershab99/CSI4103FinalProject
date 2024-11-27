@@ -69,16 +69,15 @@ Type "slides Part2.md" Sleep 500ms
 Show
 Enter
 
-Sleep 3s Enter Sleep 3s Enter Sleep 3s 
-Ctrl+E Sleep 10s 
+Sleep 4s Enter Sleep 4s Enter Sleep 4s Enter Sleep 4s Enter Sleep 4s
+
+#Ctrl+E Sleep 10s 
 Enter 
 
 Type "q"
 
-Hide 
-Type "confetty" 
-Show 
-Enter
-Sleep 3s Enter 
-Sleep 3s Enter 
+Hide Type "confetty" 
+Show Enter
+Sleep 2s Enter 
+Sleep 2s Enter 
 Sleep 2s
