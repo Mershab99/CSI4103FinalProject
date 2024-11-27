@@ -1,6 +1,6 @@
 ---
-author: ""
-date: ""
+author: "Mershab Issadien & Jenet Ghumman"
+date: "MMMM"
 paging: Page %d of %d
 ---
 
@@ -28,8 +28,8 @@ def get_sp500_tickers():
 tickers = get_sp500_tickers()
 tickers = [ticker.replace('.', '-') for ticker in tickers]  # Adjust for yfinance
 
-# Download historical data for the last 10 years
-data = yf.download(tickers, start="2014-01-01", end="2024-01-01")['Adj Close']
+# Download historical data for the last 5 years
+data = yf.download(tickers, start="2019-01-01", end="2024-01-01")['Adj Close']
 
 ```
 
@@ -52,13 +52,12 @@ log_returns = np.log(data_rem / data_rem.shift(1)).dropna()
 # Step 4: Mean-center the log returns
 
 ```python
-centered_log_returns = log_returns - log_returns.mean()`
+centered_log_returns = log_returns - log_returns.mean()
 ```
 
 # Step 5: Compute Covariance Matrix
 
 ```python
-# Step 5: Compute covariance matrix
 # Formula: Cov(i, j) = E[(R_i - μ_i) * (R_j - μ_j)]
 # The covariance matrix captures how pairs of stocks move together. Each element Cov(i, j) represents 
 # the covariance between the log returns of stock i and stock j.
@@ -69,7 +68,6 @@ centered_log_returns = log_returns - log_returns.mean()`
 #     μ_i = mean of log returns of stock i,
 #     μ_j = mean of log returns of stock j,
 #     n = number of observations.
-# This matrix is used in PCA to identify interdependencies between stocks.
 cov_matrix = centered_log_returns.cov()
 ```
 ---
@@ -77,8 +75,6 @@ cov_matrix = centered_log_returns.cov()
 # Step 6. Compute Eigenvalues/Eigenvectors:
 
 ```python
-# Step 6: Perform spectral decomposition
-# Spectral decomposition breaks down the covariance matrix into its eigenvalues and eigenvectors.
 # Mathematically:
 #   Cov_matrix = P * D * P^T
 # Where:
@@ -98,10 +94,6 @@ eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
 sorted_indices = np.argsort(eigenvalues)[::-1]
 eigenvalues = eigenvalues[sorted_indices]
 eigenvectors = eigenvectors[:, sorted_indices]
-
-
-# Explained variance ratio
-explained_variance_ratio = eigenvalues / eigenvalues.sum()
 ```
 
 ---
@@ -137,13 +129,11 @@ print(stock_weights.head(10))
 import yfinance as yf
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt 
 
 data = pd.read_csv("sp500_data.csv", index_col=0, parse_dates=True)
 
 # Verify the data is loaded correctly
 print("S&P 500 historical data successfully loaded.")
-print(data.head())
 
 # Step 2: Preprocessing - Remove Excessive Missing Values
 data_rem = data.dropna(thresh=int(0.8 * len(data.columns)), axis=0)  # At least 80% valid rows
@@ -152,12 +142,9 @@ data_rem = data_rem.dropna(thresh=int(0.8 * len(data)), axis=1)  # At least 80% 
 # Step 3: Calculate daily log returns
 log_returns = np.log(data_rem / data_rem.shift(1)).dropna()
 
-# Step 4: Mean-center the log returns
-centered_log_returns = log_returns - log_returns.mean()
-
 # %%
 # Step 5: Compute covariance matrix
-cov_matrix = centered_log_returns.cov()
+cov_matrix = log_returns.cov()
 
 # Step 6: Perform spectral decomposition
 eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
@@ -176,54 +163,9 @@ explained_variance_ratio = eigenvalues / eigenvalues.sum()
 num_components = len(eigenvalues)  # Adjust to desired number of components, for now selecting all
 principal_components = eigenvectors[:, :num_components]
 
-# Reconstruct log returns using the top principal components
-reconstructed_returns = centered_log_returns.dot(principal_components).dot(principal_components.T)
-
-
-# Convert log returns to cumulative prices
-reconstructed_prices = np.exp(reconstructed_returns.cumsum()) * data_rem.iloc[0]
-
-# %%
-# Ensure reconstructed prices align with the original data
-reconstructed_prices = pd.DataFrame(reconstructed_prices, index=log_returns.index, columns=log_returns.columns)
-
-# Compute log prices for both original and reconstructed data
-original_log_prices = np.log(data_rem)
-reconstructed_log_prices = np.log(reconstructed_prices)
-
-# Align reconstructed prices with original prices to ensure consistent dimensions
-aligned_original_log_prices = original_log_prices.loc[reconstructed_log_prices.index]
-
-# Mean Squared Error
-mse = ((aligned_original_log_prices - reconstructed_log_prices) ** 2).mean().mean()
-
-# Correlation coefficients (per stock)
-correlation_coefficients = np.diag(
-    np.corrcoef(aligned_original_log_prices.T, reconstructed_log_prices.T)[:len(aligned_original_log_prices.columns),
-                                                                             len(aligned_original_log_prices.columns):]
-)
-
-# Output results
-print(f"Mean Squared Error (MSE) between actual and reconstructed prices: {mse}")
-print("Correlation coefficients between actual and reconstructed prices:")
-print(pd.Series(correlation_coefficients, index=data_rem.columns).sort_values(ascending=False))
-
-
-# %%
-# Step 9: Plot explained variance
-plt.figure(figsize=(10, 6))
-plt.plot(np.cumsum(explained_variance_ratio), marker='o', linestyle='--', label='Cumulative Explained Variance')
-plt.xlabel('Number of Principal Components')
-plt.ylabel('Cumulative Explained Variance')
-plt.title('Explained Variance by Principal Components')
-plt.legend()
-plt.grid(True)
-plt.show()
-
 # %%
 # Step 10: Analyze the dominant principal component
 dominant_pc = eigenvectors[:, 0]
-
 # Ensure positive orientation of the dominant PC
 if dominant_pc[0] < 0:
     dominant_pc *= -1
@@ -238,3 +180,33 @@ stock_weights = pd.DataFrame({
 print("Top 10 stocks by weight in the dominant principal component:")
 print(stock_weights.head(10))
 ```
+
+---
+
+# Key Takeaways and Challenges
+
+- Covariance matrix can be used to construct tailor made combo-orderbooks. (Elaborated in report.)
+- Principal Component Analysis can be used to generate risk profiles and inform us about the most volatile stocks.
+
+- We only learn correlation, **NOT Causation**. High Covariance or stocks with similar weights in a PC are not guaranteed to move as predicatably in the future.
+    - Must be used as a starting point.
+    - Reveals symptoms on the market, not cause.
+
+---
+
+# Future Directions
+
+- Apply this methodology to other indices and asset classes
+- Develop a system to do this with real-time market data.
+    - Rolling window, etc.
+
+## Links and References:
+
+Public Project link: `https://github.com/Mershab99/CSI4103FinalProject`
+
+Presentation Gif Link: `https://github.com/Mershab99/CSI4103FinalProject/blob/main/presentation/presentation.gif`
+
+Tools Used:
+
+Slides: `https://github.com/maaslalani/slides/tree/main`
+Presentation Gif: `https://github.com/charmbracelet/vhs`
