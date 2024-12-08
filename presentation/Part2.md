@@ -1,6 +1,6 @@
 ---
 author: "Mershab Issadien & Jenet Ghumman"
-date: "MMMM"
+date: "MMMM" 
 paging: Page %d of %d
 ---
 
@@ -9,6 +9,8 @@ paging: Page %d of %d
 - The S&P 500 Index serves as a barometer for the movement of the U.S. equity market.
 
 - It tracks the price movements of 500 leading U.S. companies, capturing the activity of approximately 80% of the market capitalization of all U.S. stocks.
+
+**NOTE we can pick any set of stocks.**
 ---
 
 ## Spectral Decomposition Investigation of S&P500
@@ -49,13 +51,7 @@ data_rem = data_rem.dropna(thresh=int(0.8 * len(data)), axis=1)  # At least 80% 
 log_returns = np.log(data_rem / data_rem.shift(1)).dropna()
 ```
 
-# Step 4: Mean-center the log returns
-
-```python
-centered_log_returns = log_returns - log_returns.mean()
-```
-
-# Step 5: Compute Covariance Matrix
+# Step 4: Compute Covariance Matrix
 
 ```python
 # Formula: Cov(i, j) = E[(R_i - μ_i) * (R_j - μ_j)]
@@ -68,11 +64,11 @@ centered_log_returns = log_returns - log_returns.mean()
 #     μ_i = mean of log returns of stock i,
 #     μ_j = mean of log returns of stock j,
 #     n = number of observations.
-cov_matrix = centered_log_returns.cov()
+cov_matrix = log_returns.cov()
 ```
 ---
 
-# Step 6. Compute Eigenvalues/Eigenvectors:
+# Step 5. Compute Eigenvalues/Eigenvectors:
 
 ```python
 # Mathematically:
@@ -172,7 +168,7 @@ if dominant_pc[0] < 0:
 
 # Create a DataFrame for stock weights in the dominant principal component
 stock_weights = pd.DataFrame({
-    'Stock': centered_log_returns.columns,
+    'Stock': log_returns.columns,
     'Weight': dominant_pc
 }).sort_values(by='Weight', ascending=False)
 
@@ -196,17 +192,19 @@ print(stock_weights.head(10))
 
 # Future Directions
 
-- Apply this methodology to other indices and asset classes
+- Apply this methodology to other indices and asset classes.
+    - Something we are exploring in our report. (ETFs, Commodities, Other composite asset classes)
 - Develop a system to do this with real-time market data.
     - Rolling window, etc.
 
 ## Links and References:
 
-Public Project link: `https://github.com/Mershab99/CSI4103FinalProject`
+- Public Project link: `https://github.com/Mershab99/CSI4103FinalProject`
 
-Presentation Gif Link: `https://github.com/Mershab99/CSI4103FinalProject/blob/main/presentation/presentation.gif`
+- Presentation Gif Link: `https://github.com/Mershab99/CSI4103FinalProject/blob/main/presentation/presentation.gif`
 
 Tools Used:
 
-Slides: `https://github.com/maaslalani/slides/tree/main`
-Presentation Gif: `https://github.com/charmbracelet/vhs`
+- Slides: `https://github.com/maaslalani/slides/tree/main`
+
+- Presentation Gif: `https://github.com/charmbracelet/vhs`
