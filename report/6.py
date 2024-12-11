@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 # 1. Data Acquisition
 symbols = ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA"]  # Sample S&P 500 tickers
-sp500_data = yf.download(symbols, start="2020-01-01", end="2023-01-01")
+sp500_data = yf.download(symbols, start="2021-01-01", end="2024-01-01")
 
 # Extract relevant features
 closing_price = sp500_data["Close"]
